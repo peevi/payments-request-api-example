@@ -56,6 +56,27 @@ const paymentOptions = {
     shippingType: "shipping",
 };
 
-new PaymentRequest([applePayMethod], paymentDetails, paymentOptions);
+const request = new PaymentRequest([applePayMethod], paymentDetails, paymentOptions);
 
+        request.onmerchantvalidation = function (event) {
+            // Have your server fetch a payment session from event.validationURL.
+            const sessionPromise = fetchPaymentSession(event.validationURL);
+            event.complete(sessionPromise);
+        };
+
+        request.onshippingoptionchange = function (event) {
+            // Compute new payment details based on the selected shipping option.
+            const detailsUpdatePromise = computeDetails();
+            event.updateWith(detailsUpdatePromise);
+        };
+
+        request.onshippingaddresschange = function (event) {
+            // Compute new payment details based on the selected shipping address.
+            const detailsUpdatePromise = computeDetails();
+            event.updateWith(detailsUpdatePromise);
+        };
+
+        const response = await request.show();
+        const status = processResponse(response);
+        response.complete(status);
 </script>
